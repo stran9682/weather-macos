@@ -14,7 +14,6 @@ struct WeatherView: View {
     var body: some View {
         VStack {
             HStack {
-                
                 let placemark = (locationManager.placemark != nil) ?
                 locationManager.placemark!.locality! + ", " + locationManager.placemark!.administrativeArea!
                 : "Unknown"
@@ -39,6 +38,7 @@ struct WeatherView: View {
                 })
             }
         }
+        .navigationTitle("Weather")
     }
 }
 

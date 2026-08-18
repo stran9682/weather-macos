@@ -11,47 +11,42 @@ import Combine
 
 struct ContentView: View {
     @State private var locationManger = LocationManager()
+    @State private var path = NavigationPath()
     
     let timer = Timer.publish(every: 3600, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        NavigationStack {
-            NavigationLink(destination:
-                WeatherView(locationManager: locationManger)
-            ) {
-                let temperature = locationManger.forecast?.periods.first?.temperature
+        NavigationStack(path: $path) {
+            HStack {
+                NavigationLink(value: Route.weatherDetail, label: {
+                    let temperature = locationManger.forecast?.periods.first?.temperature
+                    
+                    WeatherWidget(temperature: temperature)
+                        .onReceive(timer, perform: {_ in
+                            locationManger.checkLocationAuthorization()
+                        })
+                })
+                .buttonStyle(.plain)
                 
-                WeatherWidget(temperature: temperature)
-                    .onReceive(timer, perform: {_ in 
-                        locationManger.checkLocationAuthorization()
-                    })
+                NavigationLink(value: Route.weatherDetail, label: {
+                    ClockWidget()
+                })
+                .buttonStyle(.plain)
+                
             }
-            .buttonStyle(.plain)
-            .clipShape(RoundedRectangle(cornerRadius: 15))
+            .navigationDestination(for: Route.self, destination: { route in
+                switch route {
+                case .weatherDetail:
+                    WeatherView(locationManager: locationManger)
+                }
+            })
         }
     }
 }
 
-struct WeatherWidget: View {
-    
-    var temperature: Int?
-    
-    var body: some View {
-        if let temperature {
-            let formated = Measurement(value: Double(temperature), unit: UnitTemperature.fahrenheit).formatted()
-            
-            Text("\(formated)")
-                    .font(.custom("New York", size: 50, relativeTo: .body))
-                .frame(width: 150, height: 150)
-                .background(Color.orange.opacity(Double(temperature) / 100.0))
-        } else {
-            Text("Unknown")
-                .frame(width: 150, height: 150)
-                .background(.gray)
-        }
-    }
+enum Route: Hashable {
+    case weatherDetail
 }
-
 
 #Preview {
     ContentView()
